@@ -225,20 +225,25 @@ class FasterWhisperPipeline(Pipeline):
                 text = text[0]
             
             if stream:
-                yield {
+                print("streaming")
+                segment = {"segments":
+                                [{
+                                    "text": text,
+                                    "start": round(vad_segments[idx]['start'], 3),
+                                    "end": round(vad_segments[idx]['end'], 3)
+                                }],
+                        "language": language
+                        }
+                yield segment
+                
+            
+            segments.append(
+                {
                     "text": text,
                     "start": round(vad_segments[idx]['start'], 3),
                     "end": round(vad_segments[idx]['end'], 3)
                 }
-                
-            else:
-                segments.append(
-                    {
-                        "text": text,
-                        "start": round(vad_segments[idx]['start'], 3),
-                        "end": round(vad_segments[idx]['end'], 3)
-                    }
-                )
+            )
 
         # revert the tokenizer if multilingual inference is enabled
         if self.preset_language is None:
