@@ -171,7 +171,7 @@ class FasterWhisperPipeline(Pipeline):
         return final_iterator
 
     def transcribe(
-        self, audio: Union[str, np.ndarray], batch_size=None, num_workers=0, language=None, task=None, chunk_size=30, print_progress = False, combined_progress=False
+        self, audio: Union[str, np.ndarray], batch_size=None, num_workers=0, language=None, task=None, chunk_size=30, print_progress = False, combined_progress=False, stream=False
     ) -> TranscriptionResult:
         if isinstance(audio, str):
             audio = load_audio(audio)
@@ -223,13 +223,22 @@ class FasterWhisperPipeline(Pipeline):
             text = out['text']
             if batch_size in [0, 1, None]:
                 text = text[0]
-            segments.append(
-                {
+            
+            if stream:
+                yield {
                     "text": text,
                     "start": round(vad_segments[idx]['start'], 3),
                     "end": round(vad_segments[idx]['end'], 3)
                 }
-            )
+                
+            else:
+                segments.append(
+                    {
+                        "text": text,
+                        "start": round(vad_segments[idx]['start'], 3),
+                        "end": round(vad_segments[idx]['end'], 3)
+                    }
+                )
 
         # revert the tokenizer if multilingual inference is enabled
         if self.preset_language is None:
